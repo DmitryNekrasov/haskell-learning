@@ -1,3 +1,8 @@
+{-
+    Бинарное дерево задано в виде списка, в каждом узле хранится либо код операции (+-*/), либо число.
+    Посчитать значение выражения, заданного деревом.
+-}
+
 module Task06 where
 
 data Tree v = Leaf v | Mul (Tree v) (Tree v) | Div (Tree v) (Tree v) | Plus (Tree v) (Tree v) | Minus (Tree v) (Tree v)

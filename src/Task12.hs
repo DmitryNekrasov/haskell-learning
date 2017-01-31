@@ -1,3 +1,7 @@
+{-
+    АВЛ-дерево задано списком. Написать процедуру добавления в дерево с балансировкой.
+-}
+
 module Task12 where
 
 data Tree key height = Leaf | Node key height (Tree key height) (Tree key height)

@@ -1,3 +1,7 @@
+{-
+    Дан список чисел. Найти НОД.
+-}
+
 module Task11 where
 
 myGcd a 0 = a
