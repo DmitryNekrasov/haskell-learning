@@ -52,6 +52,6 @@ toString Leaf = "[]"
 toString (Node key height left right) =
     "[{" ++ (show key) ++ "," ++ (show height) ++ "}," ++ (toString left) ++ "," ++ (toString right) ++ "]"
 
-task12start = do
+task12start =
     toString tree
     where tree = makeTree [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
