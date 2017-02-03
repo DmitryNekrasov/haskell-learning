@@ -8,5 +8,6 @@ import Task06 (task06start)
 import Task11 (task11start)
 import Task12 (task12start)
 import Task13 (task13start)
+import Lab02 (lab02start)
 
-main = putStr(show(task12start))
+main = lab02start
