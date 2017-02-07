@@ -1,57 +1,44 @@
 module Lab02 where
 
+import Control.Concurrent
 import Control.Monad (forever)
-import Control.Concurrent (threadDelay)
-import Data.Binary
-import Data.Typeable
-import Control.Distributed.Process
-import Control.Distributed.Process.Node
-import Network.Transport.TCP
+import Control.Concurrent.Chan
 
-data Team = Team (SendPort ClientApp) deriving (Typeable)
-data ClientApp = ClientApp deriving (Typeable)
+team chanIn chanClientApp = do
+    putStrLn "----- Team check monitor"
+    writeChan chanClientApp "team"
 
-instance Binary Team where
-    put (Team sClientApp) = do
-        put (0 :: Word8)
-        put sClientApp
-    get = do
-        t <- get :: Get Word8
-        case t of
-            0 -> do
-                sClientApp <- get
-                return (Team sClientApp)
+    niceTry <- readChan chanIn
 
-instance Binary ClientApp where
-    put ClientApp = putWord8 1
-    get = do
-        getWord8
-        return ClientApp
+    putStrLn "Team get monitor"
 
-team :: SendPort Team -> Process ()
-team sTeam = do
-    (sClientApp, rClientApp) <- newChan
-    sendChan sTeam (Team sClientApp)
-    liftIO $ putStrLn "Sent a Team!"
-    ClientApp <- receiveChan rClientApp
-    liftIO $ putStrLn "Got a ClientApp!"
-    team sTeam
+clientApp chanIn chanMonitor chanTeam = do
+    niceTry <- readChan chanIn
+    putStrLn "Client App requested monitor"
+    writeChan chanMonitor "client_app"
 
-clientApp :: ReceivePort Team -> Process ()
-clientApp rTeam = do
-    Team sClientApp <- receiveChan rTeam
-    liftIO $ putStrLn "Got a Team!"
-    sendChan sClientApp ClientApp
-    liftIO $ putStrLn "Sent a ClientApp!"
-    clientApp rTeam
+    niceTry <- readChan chanIn
+    putStrLn "Client App get monitor"
+    putStrLn "Client App send monitor to team"
+    writeChan chanTeam "client_app"
 
-ignition :: Process ()
-ignition = do
-    sTeam <- spawnChannelLocal clientApp
-    spawnLocal $ team sTeam
-    liftIO $ threadDelay 100000
+monitor chanIn chanClientApp = do
+    niceTry <- readChan chanIn
+    putStrLn "Monitor returned to client app"
+    writeChan chanClientApp "monitor"
 
+forkCreator action = forkIO $ forever action
+
+lab02start :: IO ()
 lab02start = do
-    Right transport <- createTransport "127.0.0.1" "8080" defaultTCPParameters
-    node <- newLocalNode transport initRemoteTable
-    runProcess node ignition
+
+    teamChan <- newChan
+    clientAppChan <- newChan
+    monitorChan <- newChan
+
+    forkCreator $ team teamChan clientAppChan
+    forkCreator $ clientApp clientAppChan monitorChan teamChan
+    forkCreator $ monitor monitorChan clientAppChan
+
+    getLine
+    return ()
